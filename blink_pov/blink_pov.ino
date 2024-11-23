@@ -1,5 +1,11 @@
 /*
-  This sketch turns on an LED for 2 seconds and then off for 2 seconds.
+  Terry Field, Student # 3721738
+  COMP 444 
+  November 18th, 2024
+
+  This sketch when run turns on an LED for 2 seconds and then turns it off for 2 seconds and repeats.
+  It also monitors the serial input and the user can enter a new delay period, in milliseconds, to override 
+  the default 2000 ms.
 */
 
 const int LED_PIN = 12;
