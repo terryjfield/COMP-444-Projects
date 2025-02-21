@@ -33,6 +33,9 @@ void setup() {
 void loop() {
   loop_count++; // used when cycling through colours
 
+  if (loop_count > 1000)
+    loop_count = 0;
+    
   photoresistor = analogRead(A0);
   potentiometer = analogRead(A1);
 
