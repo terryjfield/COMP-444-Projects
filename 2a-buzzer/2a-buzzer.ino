@@ -14,6 +14,7 @@ void setup() {
   pinMode(speakerPin, OUTPUT);
 }
 
+// "Moon River" is a song composed in 1961 by Henry Mancini with lyrics by Johnny Mercer. 
 void loop() {
   play('g', 6);
   play('D', 2);
