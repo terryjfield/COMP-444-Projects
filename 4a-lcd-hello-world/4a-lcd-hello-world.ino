@@ -37,7 +37,7 @@ void loop() {
   lcd.setCursor(0, 1);
   int totalSecs  = millis() / 1000;
   char buffer[16];
-  sprintf(buffer, "%02d:%02d:%02d", totalSecs / 3600, totalSecs / 60 % 60, totalSecs % 60);
+  sprintf(buffer, "%02u:%02u:%02u", totalSecs / 3600, totalSecs / 60 % 60, totalSecs % 60);
   lcd.print(buffer);
   delay(100);
 }
