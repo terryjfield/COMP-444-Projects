@@ -7,33 +7,31 @@ const byte ETX = 0x03;
 const byte ACK = 0x06;
 const byte NAK = 0x15;
 
-enum protoState { READY,
-                  TIMEOUT,
-                  ERROR,
-                  WAITING_FOR_ACK,
-                  ACK_RECEIVED,
-                  NAK_RECEIVED,
-                  WAITING_FOR_STX,
-                  WAITING_FOR_ETX,
-                  MESSAGE_RECEIVED 
+enum protoState { READY,    // The serial port is ready to transmit a new message
+                  TIMEOUT,  // No response was received 
+                  ERROR,    // Message not successfully received or transmitted
+                  WAITING_FOR_ACK, // Message transmitted, waiting for receiver to send ACK
+                  ACK_RECEIVED,    // Receiver sent ACK
+                  NAK_RECEIVED,    // Receiver sent NAK
+                  WAITING_FOR_STX, // Waiting for start of message transmission
+                  WAITING_FOR_ETX, // Received STX, receiving bytes until STX received
+                  MESSAGE_RECEIVED // Message successfully received
                   };
 
-const byte NO_CHAR = 0x01;
-const byte PROTOCOL_ERROR = 0x00;
-const byte MAX_RETRIES = 3;
-const unsigned long TIMEOUT_MS = 3000;
+const byte MAX_RETRIES = 3; // Number of times to retry transmission of message if receiver NAKs it
+const unsigned long TIMEOUT_MS = 3000; // TIme to wait for receiving message
 
 // Global variables that hold the state of the message transmission
 unsigned long startMillis;  // stores current milliseconds when we started timeout timer
-byte retransmitCount;       // stores of times the message has been retried/re-transmitted
+byte retransmitCount;       // stores of times the message has been re-transmitted
 byte NAKcount;              // stores the number of times a received message has been NAK'd
-protoState msgState = READY;
+protoState msgState = READY; // Initial state
 boolean messageToSend = false;
 boolean messageToReceive = true;
 
 String receivedMessage;
 
-const byte RX_PIN = 10;
+const byte RX_PIN = 10; 
 const byte TX_PIN = 11;
 
 SoftwareSerial slaveSerial(RX_PIN, TX_PIN);
