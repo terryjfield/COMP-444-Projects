@@ -1,10 +1,10 @@
-// Green board
+// Blue board
 #include "SerialMessageHandler.h"                                                                                            "
 
-String receivedMessage;
 protoState msgState = READY;
 
 SerialMessageHandler smh(10,11,Serial);
+boolean messageToSend = true;
 
 void setup() {
   Serial.begin(9600);
@@ -12,21 +12,25 @@ void setup() {
 }
 
 void loop() {
-    smh.receiveMessage(&msgState, receivedMessage);
+  if (messageToSend) {
+    smh.sendMessage(&msgState, "S000,000");
     switch (msgState) {
-      case MESSAGE_RECEIVED:
-        Serial.print("Message received: ");
-        Serial.println(receivedMessage);
+      case ACK_RECEIVED:
+        Serial.println("ACK received, message sent");
         msgState = READY;
+        messageToSend = false;
         break;
       case ERROR:
         Serial.println("ERROR in transmission");
         msgState = READY;
+        messageToSend = false;
         break;
       case TIMEOUT:
-        Serial.println("Timeout in receiving message");
+        Serial.println("Timeout");
         msgState = READY;
-        break;        
-    }
-    delay(200);
+        messageToSend = false;
+        break;
+      }
+  }
+  delay(200);
 }

@@ -20,7 +20,7 @@ byte SerialMessageHandler::calculateChecksum(String message) {
     return chksum;
   }
   
-  void SerialMessageHandler::transmitFrame(String message, SoftwareSerial &serialPort, unsigned long *timer) {
+  void SerialMessageHandler::transmitFrame(String message) {
     String frame;
     byte frameLen;
   
@@ -31,19 +31,19 @@ byte SerialMessageHandler::calculateChecksum(String message) {
     frame += (char)ETX;
     frameLen = frame.length();
     for (int i = 0; i < frameLen; i++) {
-      serialPort.write(frame[i]);
+      this->softSerial->write(frame[i]);  
     }
-    serialPort.flush();
-    *timer = millis();  // capture the time when the message was sent
+    this->softSerial->flush();
+    this->timer = millis(); // capture the time when the message was sent
   }
   
   /**
-    See if an ACK character has been received.
+    What for an ACK character. 
   */
-  protoState SerialMessageHandler::receiveACK(SoftwareSerial &serialPort, unsigned long timer) {
+  protoState SerialMessageHandler::receiveACK() {
     byte incomingByte = 0;
-    if (serialPort.available() > 0) {
-      incomingByte = serialPort.read();
+    if (this->softSerial->available() > 0) {
+      incomingByte = this->softSerial->read();
       switch (incomingByte) {
         case ACK:
           return ACK_RECEIVED;
@@ -52,45 +52,45 @@ byte SerialMessageHandler::calculateChecksum(String message) {
           return NAK_RECEIVED;
           break;
         default:
-          serialPort.write(NAK);
-          serialPort.flush();
+          this->softSerial->write(NAK);
+          this->softSerial->flush();
           return ERROR;
       };
     } else {
       unsigned long currentMillis;
       currentMillis = millis();
-      if (currentMillis - timer >= TIMEOUT_MS) {  // Timeout
+      if (currentMillis - this->timer >= TIMEOUT_MS) {  // Timeout
         return TIMEOUT;
       }
     }
     return WAITING_FOR_ACK;
   }
   
-  protoState SerialMessageHandler::transmitMessage(String message, SoftwareSerial &serialPort, unsigned long *timer) {
-    transmitFrame(message, serialPort, timer);
+  protoState SerialMessageHandler::transmitMessage(String message) {
+    transmitFrame(message);
     return WAITING_FOR_ACK;
   }
   
-  void SerialMessageHandler::sendMessage(protoState *msgState, String message, SoftwareSerial &serialPort, unsigned long *timer) {
+  void SerialMessageHandler::sendMessage(protoState *msgState, String message) {
     protoState localState;
     localState = *msgState;
     switch (localState) {
       case READY:
-        transmitMessage(message, serialPort, timer);
+        transmitMessage(message);
         *msgState = WAITING_FOR_ACK;
-        retransmitCount = 0;
+        this->retransmitCount = 0;
         break;
       case WAITING_FOR_ACK:
-        *msgState = receiveACK(serialPort, *timer);
+        *msgState = receiveACK();
         break;
       case NAK_RECEIVED:
-        if (retransmitCount == MAX_RETRIES) {
+        if (this->retransmitCount == MAX_RETRIES) {
           *msgState = ERROR;
           return;
         } else {
-          transmitMessage(message, serialPort, timer);
+          transmitMessage(message);
           *msgState = WAITING_FOR_ACK;
-          retransmitCount++;
+          this->retransmitCount++;
         }
         break;
     }
@@ -106,13 +106,11 @@ byte SerialMessageHandler::calculateChecksum(String message) {
     if (*msgState == READY) { // Set up timer, clear message buffer
       *msgState = WAITING_FOR_STX;
       this->NAKcount = 0;
-      this->timer = millis();  // capture the time when we wait for the message
+      this->timer = millis();  // capture the current time. We will refresh this time if we receive an STX
       this->debugMessage("Waiting for STX");
     }
-    if (this->softSerial->available() > 0) {
+    if (this->softSerial->available() > 0) {  // Check if character is available, non-blocking
       incomingByte = this->softSerial->read();
-      this->debugMessage("Rec: ");
-      this->debugMessage(String(incomingByte));
       switch (*msgState) {
         case WAITING_FOR_STX:
           message = "";
@@ -120,10 +118,11 @@ byte SerialMessageHandler::calculateChecksum(String message) {
             transmitByte(NAK);
             this->debugMessage("Tranmitting NAK no STX");
             this->NAKcount++;
-            return;
+          } else {
+            *msgState = WAITING_FOR_ETX;
+            this->timer = millis(); // Now reset the timeout timer now that we have received the STX
+            this->debugMessage("Waiting for ETX");
           }
-          *msgState = WAITING_FOR_ETX;
-          this->debugMessage("Waiting for ETX");
           break;
         case WAITING_FOR_ETX:
           if (incomingByte != ETX) {
@@ -139,19 +138,20 @@ byte SerialMessageHandler::calculateChecksum(String message) {
               *msgState = MESSAGE_RECEIVED;
             } else {  // Send NAK for checksum mismatch 
               transmitByte(NAK);
-              this->debugMessage("Send NAK");
               NAKcount++;
-              if (this->NAKcount == MAX_RETRIES + 1) 
+              this->timer = millis();
+              this->debugMessage("Send NAK");
+              if (this->NAKcount == (MAX_RETRIES + 1)) 
                 *msgState = ERROR;
               else
                 *msgState = WAITING_FOR_STX;
             }
           }   
       } //switch
-    } else { // no character available so lets check if we timeout
+    } else { // no character available so let's check if we timeout
       unsigned long currentMillis;
       currentMillis = millis();
-      if (currentMillis - this->timer >= TIMEOUT_MS)
+      if ((currentMillis - this->timer) >= TIMEOUT_MS)
         *msgState = TIMEOUT;    
     }
   }

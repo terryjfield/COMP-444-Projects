@@ -33,7 +33,7 @@ class SerialMessageHandler
   public:
     SerialMessageHandler(int rxPin, int txPin, HardwareSerial& serialPort); //constructor
     void debugMessage(String message);
-    void sendMessage(protoState *msgState, String message, SoftwareSerial &serialPort, unsigned long *timer);
+    void sendMessage(protoState *msgState, String message);
     void receiveMessage(protoState *msgState, String &message);
 
   private:
@@ -42,12 +42,12 @@ class SerialMessageHandler
     uint32_t   timer;
     uint8_t    retransmitCount;        // stores of times the message has been re-transmitted
     uint8_t    NAKcount;               // stores the number of times a received message has been NAK'd
-    protoState msgState = READY; // Initial state
+    protoState msgState = READY;       // Initial state
 
     byte calculateChecksum(String message);
-    void transmitFrame(String message, SoftwareSerial &serialPort, unsigned long *timer);
-    protoState receiveACK(SoftwareSerial &serialPort, unsigned long timer);
-    protoState transmitMessage(String message, SoftwareSerial &serialPort, unsigned long *timer);
+    void transmitFrame(String message);
+    protoState receiveACK();
+    protoState transmitMessage(String message);
     void transmitByte(byte value);
 };
 
