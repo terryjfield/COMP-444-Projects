@@ -1,10 +1,15 @@
-#include "Arduino.h"
 #include "SerialMessageHandler.h"
 
-SerialMessageHandler::SerialMessageHandler(int rxPin, int txPin, HardwareSerial &serialPort) {
+SerialMessageHandler::SerialMessageHandler(int rxPin, int txPin, HardwareSerial &serialPort, bool waitForAck) {
+    //this->softSerial = new SoftwareSerial(rxPin, txPin);
     this->softSerial = new SoftwareSerial(rxPin, txPin);
     this->softSerial->begin(9600);
     this->hw_serial  = &serialPort;
+    this->waitForAck = waitForAck;
+}
+
+void SerialMessageHandler::listen() {
+  this->softSerial->listen();
 }
 
 void SerialMessageHandler::debugMessage(String message) {
@@ -38,7 +43,7 @@ byte SerialMessageHandler::calculateChecksum(String message) {
   }
   
   /**
-    What for an ACK character. 
+    Wait for an ACK character. 
   */
   protoState SerialMessageHandler::receiveACK() {
     byte incomingByte = 0;
@@ -77,7 +82,10 @@ byte SerialMessageHandler::calculateChecksum(String message) {
     switch (localState) {
       case READY:
         transmitMessage(message);
-        *msgState = WAITING_FOR_ACK;
+        if (this->waitForAck)
+          *msgState = WAITING_FOR_ACK;
+        else
+          *msgState = ACK_RECEIVED;  
         this->retransmitCount = 0;
         break;
       case WAITING_FOR_ACK:
@@ -139,7 +147,7 @@ byte SerialMessageHandler::calculateChecksum(String message) {
             } else {  // Send NAK for checksum mismatch 
               transmitByte(NAK);
               NAKcount++;
-              this->timer = millis();
+              this->timer = millis(); // reset timer for sender to re-transmit
               this->debugMessage("Send NAK");
               if (this->NAKcount == (MAX_RETRIES + 1)) 
                 *msgState = ERROR;

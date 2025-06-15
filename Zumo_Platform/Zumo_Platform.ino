@@ -3,14 +3,14 @@
 #include "SerialMessageHandler.h"  
 
 ZumoMotors motors;
-Pushbutton button(ZUMO_BUTTON);
+//Pushbutton button(ZUMO_BUTTON);
 ZumoIMU imu;
 
 // For receiving commands
 String receivedMessage;
 protoState msgState = READY;
 
-SerialMessageHandler smh(5,6,Serial);
+SerialMessageHandler smh(5,4,Serial,true);
 
 void setup() {
   Serial.begin(9600);
@@ -25,7 +25,7 @@ void setup() {
   // Enables accelerometer and magnetometer
   imu.enableDefault();
   imu.configureForCompassHeading();
-
+  setMotorSpeeds(0,0);
 }
 
 void loop() {
@@ -46,7 +46,6 @@ void loop() {
         msgState = READY;
         break;        
     }
-    delay(200);
 }
 
 void setMotorSpeeds(int leftMotorSpeed, int rightMotorSpeed) {
@@ -72,7 +71,7 @@ void executeCommand(String commandStr) {
   switch (command) {
     case 'S':
       int leftMotorSpeed, rightMotorSpeed;
-      sscanf(commandStr.c_str(), "S%3d,%3d", &leftMotorSpeed, &rightMotorSpeed);
+      sscanf(commandStr.c_str(), "S%4d,%4d", &leftMotorSpeed, &rightMotorSpeed);
       setMotorSpeeds(leftMotorSpeed, rightMotorSpeed);
       break;
   }

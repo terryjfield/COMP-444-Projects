@@ -6,7 +6,6 @@
 #define SerialMessageHandler_h
 
 #include "Arduino.h"
-
 #include "SoftwareSerial.h"
 
 const byte STX = 0x02;
@@ -26,15 +25,16 @@ enum protoState { READY,    // The serial port is ready to transmit a new messag
                   };
 
 const byte MAX_RETRIES = 3; // Number of times to retry transmission of message if receiver NAKs it
-const unsigned long TIMEOUT_MS = 3000; // TIme to wait for receiving message
+const unsigned long TIMEOUT_MS = 3000; // Time to wait for receiving message
 
 class SerialMessageHandler
 {
   public:
-    SerialMessageHandler(int rxPin, int txPin, HardwareSerial& serialPort); //constructor
+    SerialMessageHandler(int rxPin, int txPin, HardwareSerial& serialPort, bool waitForAck); //constructor
     void debugMessage(String message);
     void sendMessage(protoState *msgState, String message);
     void receiveMessage(protoState *msgState, String &message);
+    void listen();
 
   private:
     SoftwareSerial *softSerial;
@@ -43,6 +43,7 @@ class SerialMessageHandler
     uint8_t    retransmitCount;        // stores of times the message has been re-transmitted
     uint8_t    NAKcount;               // stores the number of times a received message has been NAK'd
     protoState msgState = READY;       // Initial state
+    bool       waitForAck;             // Flag to indicate whether to wait for an ack or not
 
     byte calculateChecksum(String message);
     void transmitFrame(String message);

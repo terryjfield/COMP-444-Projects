@@ -7,14 +7,13 @@
 */
 
 #include <NewPing.h>
-#include "DHT.h"
 #include <SoftwareSerial.h>  
 
 // Define pins for the 4 HC-SR04 ultrasonic sensors
-const byte FRONT_PIN = 2;          
-const byte REAR_PIN  = 3;
-const byte RIGHT_PIN = 4;
-const byte LEFT_PIN  = 5;          
+const byte FRONT_PIN = 3;          
+const byte REAR_PIN  = 5;
+const byte RIGHT_PIN = ;
+const byte LEFT_PIN  = 4;          
 
 // Initialize DHT sensor
 const byte DHT_PIN = 10;
@@ -50,23 +49,29 @@ void bluetoothSetup() {
 
 void setup() {
   Serial.begin(9600);
-  bluetoothSetup();
-  dht.begin();
+  //bluetoothSetup();
+  //dht.begin();
 }
 
 void loop() {
   delay(100);                     // Wait 50ms between pings (about 20 pings/sec). 29ms should be the shortest delay between pings.
   bluetooth.print("Ping front: ");
   bluetooth.println(getDistance(frontSonar));
+  Serial.println(getDistance(frontSonar));
   bluetooth.print("Ping rear: ");
   bluetooth.println(getDistance(rearSonar));
+  Serial.println(getDistance(rearSonar));
   bluetooth.print("Ping right: ");
   bluetooth.println(getDistance(rightSonar));
+  Serial.println(getDistance(rightSonar));
   bluetooth.print("Ping left: ");
   bluetooth.println(getDistance(leftSonar));
+  Serial.println(getDistance(leftSonar));
   getTempAndHumidity(&temp, &humidity);
   bluetooth.print("Temperature: ");
   bluetooth.println(temp);
+  Serial.print("Temperature: ");
+  Serial.println(temp);
   bluetooth.print("Humidity: ");
   bluetooth.println(humidity);
   serialPrint("Foo");
