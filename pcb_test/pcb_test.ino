@@ -135,7 +135,7 @@ void loop() {
   digitalWrite(LED_PIN, HIGH);
   getSonarReadings(&left, &right, &front, &back);                  
   serialPrintln("L: " + String(left) + " R: " + String(right) + " F: " + String(front) + " B: " + String(back));
-  sendCommandToZumo(message5);
+  //sendCommandToZumo(message5);
   delay(200);
 }
 

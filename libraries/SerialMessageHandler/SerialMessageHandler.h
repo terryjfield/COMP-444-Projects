@@ -20,7 +20,7 @@ enum protoState { READY,    // The serial port is ready to transmit a new messag
                   ACK_RECEIVED,    // Receiver sent ACK
                   NAK_RECEIVED,    // Receiver sent NAK
                   WAITING_FOR_STX, // Waiting for start of message transmission
-                  WAITING_FOR_ETX, // Received STX, receiving bytes until STX received
+                  WAITING_FOR_ETX, // Received STX, receiving bytes until ETX received
                   MESSAGE_RECEIVED // Message successfully received
                   };
 
@@ -40,7 +40,7 @@ class SerialMessageHandler
     SoftwareSerial *softSerial;
     HardwareSerial *hw_serial;
     uint32_t   timer;
-    uint8_t    retransmitCount;        // stores of times the message has been re-transmitted
+    uint8_t    retransmitCount;        // stores the number of times the message has been re-transmitted
     uint8_t    NAKcount;               // stores the number of times a received message has been NAK'd
     protoState msgState = READY;       // Initial state
     bool       waitForAck;             // Flag to indicate whether to wait for an ack or not
